@@ -1,0 +1,52 @@
+---
+title: "Stat 5014 Schedule"
+author: "Bob Settlage"
+date: "2018"
+output:
+  html_document: default
+  fig_caption: yes
+  fig_height: 6
+  fig_width: 7
+  pdf_document: null
+  classoption: landscape
+header-includes: \setlength\parindent{24pt} \usepackage{MnSymbol} \usepackage{mathrsfs}
+---
+  
+  
+
+9:00-9:50 a.m.  Wednesday, Torgersen Hall 1040
+--------------  ---------------------------------------
+CRN:            88121
+Office:         3030 Torgersen Hall
+Email:          rsettlag@vt.edu
+Office hours:   MF 9-10, location TBD
+Course Website: https://github.com/rsettlage/STAT_5014_Fall_2018
+--------------  ---------------------------------------
+
+Tentative schedule:
+
+Lecture Date    Topic
+------- ------  ------------------------------------------------------------------ 
+                *MODULE 1 -- Using R for Reproducible Research*  
+1       22-Aug  Introductions, Reproducible Research, R, Rstudio, Rmarkdown, $\LaTeX$
+2	    29-Aug  Loading, munging and summarizing data in R, plus some Git
+3	    5-Sep   R functions and logic, good programming practices
+4	    12-Sep  Vector/matrix math, speed considerations
+5	    19-Sep  R's apply family of functions
+                *MODULE 2 -- Graphics in R*  
+6	    26-Sep  Base graphics, multipanel plots
+7	    3-Oct   ggplot
+8	    10-Oct  Dashboards
+9	    17-Oct  Interactive visualizations
+                *MODULE 3 -- Computing*  
+10	    24-Oct  Parallel computing in R, foreach and dopar
+11	    31-Oct  Python and Jupyter notebooks
+12	    7-Nov   Python II 
+                *MODULE 4 -- GUI driven stats*
+13	    14-Nov  Intro to GUIs -- BlueSky and JMP
+-	    21-Nov  Thanksgiving Break
+14	    28-Nov  More GUIs -- JMP II and Orange
+15	    5-Dec   From JMP to SAS 
+-       Final   None
+------- ------  ------------------------------------------------------------------
+
