@@ -1,0 +1,15 @@
+.DS_Store
+./*/.DS_Store
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Open_Data_RDW*
+Personenauto*
+~$*
+*_cache*
+*_files*
+*.txt
+*.csv
+*.sql
+STUDENT_GITS*
