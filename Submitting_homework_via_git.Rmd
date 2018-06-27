@@ -1,0 +1,45 @@
+---
+title: "Submitting homework"
+author: "Bob Settlage"
+date: "June 27, 2018"
+output: pdf_document
+header-includes: \setlength\parindent{24pt} \usepackage{MnSymbol} \usepackage{mathrsfs}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Submitting homework
+
+Homework submissions will be done through GitHub.  At this point, I am assuming you have worked through the Git Configuration document and have forked my repo, cloned the forked copy to your local machine (or cloud instance), and setup git to allow for updating the repo from an upstream branch.  You should have a situation as shown below.
+
+```{r,out.width = "450px", echo=F}
+    knitr::include_graphics("Git_repos.png",auto_pdf=F)
+```
+
+Submitting homework will involve updating your local repo with both of the remote repos, adding your homework to the tracked files, committing changes, pushing your changes to your remote repo and finally submitting a pull request.
+
+After you have completed your assignment and saved your final knitted document, at the command line, type the following:
+
+```{r echo=T, eval=F}
+
+## make sure your local copy is synced with your remote copy
+git pull
+## steps to commit your changes
+git add <your homework file>
+git commit -m "final version of homework XXX"
+## push your homework to your remote repo
+git push
+## make sure your local copy is synced with MY remote copy
+git fetch upstream
+git checkout master
+git merge -Xtheirs upstream/master
+git commit -m "updating to new stuff"
+## push any new stuff I added to your remote copy
+git push
+```
+
+
+Almost done.  Now, in the GitHub site, in your repo, you need to submit a pull request.
+
