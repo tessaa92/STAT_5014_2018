@@ -20,7 +20,7 @@ CRN:            88121
 Office:         3030 Torgersen Hall
 Email:          rsettlag@vt.edu
 Office hours:   MF 9-10, location TBD
-Course Website: https://github.com/rsettlage/STAT_5014_Fall_2018
+Course Website: https://github.com/rsettlage/STAT_5014_2018
 --------------  ---------------------------------------
 
 Tentative schedule:
