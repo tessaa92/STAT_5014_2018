@@ -43,7 +43,7 @@ Lecture Date    Topic
 11	    31-Oct  Python and Jupyter notebooks
 12	    7-Nov   Python II 
                 *MODULE 4 -- GUI driven stats*
-13	    14-Nov  Intro to GUIs -- BlueSky and JMP
+13	    14-Nov  Intro to GUIs -- BlueSky (or RKWard/jamovi/Rcmdr/Rattle) and JMP
 -	    21-Nov  Thanksgiving Break
 14	    28-Nov  More GUIs -- JMP II and Orange
 15	    5-Dec   From JMP to SAS 

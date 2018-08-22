@@ -28,30 +28,29 @@ output:
 * Markdown
 * Python basics
 
-## Tentative Course Lecture Schedule
-
+## Tentative Course Lecture Schedule  
 
 *MODULE 1 -- Using R for Reproducible Research*  
-- 22-Aug  Introductions, Reproducible Research, R, Rstudio, Rmarkdown, $\LaTeX$  
-- 29-Aug  Loading, munging and summarizing data in R, plus some Git  
-- 5-Sep   R functions and logic, good programming practices  
-- 12-Sep  Vector/matrix math, speed considerations  
-- 19-Sep  R's apply family of functions  
+- 22-Aug  $\hspace{10pt}$ Introductions, Reproducible Research, R, Rstudio, Rmarkdown, $\LaTeX$  
+- 29-Aug  $\hspace{10pt}$ Loading, munging and summarizing data in R, plus some Git  
+- 5-Sep   $\hspace{14pt}$ R functions and logic, good programming practices  
+- 12-Sep  $\hspace{10pt}$ Vector/matrix math, speed considerations  
+- 19-Sep  $\hspace{10pt}$ R's apply family of functions  
 *MODULE 2 -- Graphics in R*  
-- 26-Sep  Base graphics, multipanel plots  
-- 3-Oct   ggplot  
-- 10-Oct  Dashboards  
-- 17-Oct  Interactive visualizations  
+- 26-Sep  $\hspace{10pt}$ Base graphics, multipanel plots  
+- 3-Oct   $\hspace{16pt}$ ggplot  
+- 10-Oct  $\hspace{12pt}$ Dashboards  
+- 17-Oct  $\hspace{12pt}$ Interactive visualizations  
 *MODULE 3 -- Computing*  
-- 24-Oct  Parallel computing in R, foreach and dopar  
-- 31-Oct  Python and Jupyter notebooks  
-- 7-Nov   Python II  
+- 24-Oct  $\hspace{12pt}$ Parallel computing in R, foreach and dopar  
+- 31-Oct  $\hspace{12pt}$ Python and Jupyter notebooks  
+- 7-Nov   $\hspace{14pt}$ Python II  
 *MODULE 4 -- GUI driven stats*  
-- 14-Nov  Intro to GUIs -- BlueSky and JMP  
+- 14-Nov  $\hspace{12pt}$ Intro to GUIs -- BlueSky and JMP  
 * 21-Nov  _Thanksgiving Break_  
-- 28-Nov  More GUIs -- JMP II and Orange  
-- 5-Dec   From JMP to SAS  
-* Final   None  
+- 28-Nov  $\hspace{12pt}$ More GUIs -- JMP II and Orange  
+- 5-Dec   $\hspace{16pt}$ From JMP to SAS  
+* Final   $\hspace{18pt}$ None  
 
 ## Passing the course  
 
