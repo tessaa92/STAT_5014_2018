@@ -1,0 +1,154 @@
+---
+title: "Homework 2"
+author: "Tessa Anwyll"
+date: "August 31, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+library(tidyr)
+```
+
+# Homework 2
+*I have neither given nor recieved any unauthorized assistance on this assignment*
+
+## Problem 4
+One year in college I had a lengthy, multi-part final project for a class that counted as a large part of my semester grade. I spent a ton of time working on it and had only one part left to do. When I went to finish that one part, the entire rest of the project was gone! I spent an hour digging through my hard drives and trying to recover files to see where it had gone, but I couldn’t find it. I ended up staying up all night until class the next day when it was due re-doing the entire thing. Because it had been on the computer, I had very limited notes to work off of so while I had figured everything out, all the formatting and retyping still took a long time. I wish I known about version control before this, if only for situations like these! Additionally, it seems really easy for collaboration, fixing/finding issues and returning to an old version when your “updates” turn out to be awful and cause everything to break. It seems like it really can provide some peace of mind and increase workflow since you don’t necessarily have to spend hours digging through code to find the one thing that you changed that is causing everything to mess up; you could find it, or just revert to the last version that worked and start back over from there. Plus, if my computer is stolen or destroyed by dropping it, spilling something on it or having some other unfortunate event happen to it, my work will not be lost since it is backed up in many places, not just locally. 
+
+
+## Problem 5
+
+###A
+```{r}
+# Read in the data
+tableA<-read.csv("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/Sensory.dat")
+
+# Get information about the data
+str(tableA)
+
+# Look at the data
+tableA
+```
+```{r}
+##tableA1<-arrange(tableA, Operator)
+# Make data frame into a list so it can be sorted
+#tableAList<-split.data.frame(tableA, seq(nrow(tableA)), rm.is.character(tableA))
+countA<-nrow(tableA)
+tableAList <-unite(tableA[2:countA, ])
+##tableAList<-as.numeric((tableAList))
+##tableAList<- paste(tableAList)
+(tableAList)
+
+# Sort in ascending order
+#tableAList<-sort(tableAList)
+# Add column labels
+
+##setnames(tableA, c("Item", "1", "2", "3", "4", "5"))
+```
+###B
+```{r}
+# Read in the data
+tableB<-read.csv("http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat")
+
+# Get information about the data
+str(tableB)
+
+# Look at the data
+tableB
+```
+```{r}
+tableB1<-separate(tableB, Year.Long.Jump.Year.Long.Jump.Year.Long.Jump.Year.Long.Jump, into = c("Y1", "LJ1", "Y2", "LJ2", "Y3", "LJ3", "Y4", "LJ4"), sep = " ")
+tableB1
+
+year<-as.vector(c(tableB1[,1], tableB1[,3], tableB1[,5], tableB1[,7]))
+year
+LongJump<-as.vector(c(tableB1[,2], tableB1[,4], tableB1[,6], tableB1[,8]))
+LongJump
+matB1<-cbind(tableB1, year, LongJump)
+matB1
+tableB1<-select(matB1, year, LongJump)
+tableB1
+tableB1<-filter(tableB1, !is.na(tableB1$year)&!is.na(tableB1$LongJump))
+as.numeric(as.character(year))
+##tableB1<-mutate(tableB1, Year = year+1900)
+##tableB1<-select(tableB1, Year, LongJump)
+tableB1
+##gather(tableB1, Year, LongJump)
+```
+
+
+## Problem 6
+
+Import the data and take a look at what we are working with:
+```{r include=FALSE}
+# Path to data
+library(swirl)
+.datapath <- file.path(path.package('swirl'), 'Courses',
+                      'R_Programming_E', 'Looking_at_Data',
+                      'plant-data.txt')
+# Read in data
+plants <- read.csv(.datapath, strip.white=TRUE, na.strings="")
+
+# Remove annoying columns
+.cols2rm <- c('Accepted.Symbol', 'Synonym.Symbol')
+plants <- plants[, !(names(plants) %in% .cols2rm)]
+
+# Make names pretty
+names(plants) <- c('Scientific_Name', 'Duration', 'Active_Growth_Period',
+                   'Foliage_Color', 'pH_Min', 'pH_Max',
+                   'Precip_Min', 'Precip_Max',
+                   'Shade_Tolerance', 'Temp_Min_F')
+
+```
+```{r echo=TRUE}
+# Look at the data
+plants
+```
+
+The biggest issue is all the "NA"s. My next move is to remove each row that does not have NAs in any of my variables I will be testing (so no NAs for Foliage Color or either of the pH measures)
+
+
+```{r}
+library(dplyr)
+# Store new data frame to use in my test with only rows with no "NA"s for my variables of interest
+newplants<-filter(plants,!is.na(plants$pH_Min)&!is.na(plants$pH_Max)&!is.na(plants$Foliage_Color))
+
+# Create a new variable that takes the average of the min and max pH reported in the data set
+newplants<-mutate(newplants, pHAvg = (pH_Min+pH_Max)/2)
+
+# Group by foliage color, my predictor
+newplants<-group_by(newplants, Foliage_Color)
+
+# Take a look at the data set now
+newplants
+
+# Make a table just to display that summarizes the means of each average ph and counts for each foliage color
+dispnewplants <- summarize(newplants, n(), mean(pHAvg))
+dispnewplants
+
+```
+Now that the data is ready to go, I will run my ANOVA test and interpret my results at a .05 significance level
+```{r, echo = TRUE}
+
+# Store regression model in a new variable
+ANOVAtestdata<-lm(pHAvg~Foliage_Color, newplants)
+
+# Run ANOVA Test
+ANOVAResults<-anova(ANOVAtestdata)
+
+# Format output as a nicer table
+library(magrittr)
+library(kableExtra)
+ANOVAResults %>%
+  kable() %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "condensed"))
+
+```
+
+With a p value (0.0015) so much lower than my significance level (.05), we can concluded that there is a statistically significant relationshipe between foliage color and pH.
+**coefficients?**
+
+
