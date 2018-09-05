@@ -60,7 +60,7 @@ Note that our setup is a little more complex in that we have two remote and loca
 git remote add upstream <https://github.com/rsettlage/STAT_5014.git>
 git fetch upstream
 git checkout master
-git merge upstream/master
+git merge -Xtheirs upstream
 
 
 ## Back to Reproducible Research Analysis
