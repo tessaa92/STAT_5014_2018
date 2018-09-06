@@ -10,6 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(dplyr)
 library(tidyr)
+library(tibble)
+library(readr)
+library(tidyverse)
+library(broom)
 ```
 
 # Homework 2
@@ -22,44 +26,46 @@ One year in college I had a lengthy, multi-part final project for a class that c
 ## Problem 5
 
 ###A
-```{r}
+```{r, echo=TRUE}
 # Read in the data as a list so I can split it up by row
 tableA<-(readLines("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/Sensory.dat"))
 
-# Get information about the data
+# Split into individual data values
 tableA<-strsplit(tableA, split = " ")
 
+# Cut off first two vectors in table (they're just labels). So for each row there should be one value per operator (5) except for rows that have a label sucked into them, there are 6 values in those rows.So this loop removes the label from the rows with 6 and puts them into a vector of labels that I will use as  the row names.
 matA<-tableA[3:length(tableA)]
 dfnames<-vector()
 for(i in 1:length(matA)){
   
   if(length(matA[[i]])==6){
-   dfnames<-c(dfnames, paste("Item ",matA[[i]][1]))
+   dfnames<-c(dfnames, (matA[[i]][1]))
   matA[[i]]<-c(matA[[i]][2:6])
-
   }
 } 
 
-
+# Convert to 10x5 matrix then data frame and format (Adding row and column names and making columns the right data type)
 aDf<- matrix(unlist(matA), nrow = 10, byrow = TRUE, ncol=5)
-
 rownames(aDf)<-dfnames
 colnames(aDf)<-c("Operator 1", "Operator 2", "Operator 3", "Operator 4", "Operator 5")
+
 aDf<-data.frame(aDf)
-#aDf<-gather(aDf, key = Operator, value = c(1, 2, 3, 4, 5), -Operator.1, -Operator.2, -Operator.3, -Operator.4, -Operator.5)
+
+aDf<-rownames_to_column(aDf, "Item")
+aDf<-gather(aDf, key = Operator, value = Measurement, Operator.1, Operator.2, Operator.3, Operator.4, Operator.5, -Item)
+aDf[,3]<-as.numeric(aDf[,3])
+aDf<-group_by(aDf, Item)
+aDf<-arrange(aDf, Item)
 aDf
 ```
 
 ###B
-```{r}
+```{r, echo = TRUE}
 # Read in the data
 tableB<-read.csv("http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat")
 
-# Get information about the data
-str(tableB)
-
 # Look at the data
-tableB
+head(tableB)
 ```
 ```{r, echo = TRUE}
 ## Separate the data into columns
@@ -82,32 +88,75 @@ tableB1
 
 
 ###C
-```{r}
+```{r, echo = TRUE}
+#Read in data as a list using fread
 dataC<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BrainandBodyWeight.dat")
 
+#Assign temporary column names to columns with values we want to keep and get rid of columns that are all NA
 colnames(dataC)<-c("BodyWeight1", "BrainWeight1", "BodyWeight2", "BrainWeight2", "BodyWeight3", "BrainWeight3", "BodyWeight4", "BrainWeight4", "BodyWeight5", "BrainWeight5", "BodyWeight6", "BrainWeight6")
+dataC<-select(dataC, BodyWeight1, BodyWeight2, BodyWeight3, BrainWeight1, BrainWeight2, BrainWeight3)
 
-BoWe<-vector()
-BrWe<-vector()
-i<-1
-for(i in 1:3){
- BoWe<-c(BoWe, dataC[,(paste("BodyWeight",i))])
- BrWe<-c(BrWe, dataC[,string(paste("BrainWeight",i))])
-}
-BoWe
-BrWe
-#for(i in 1:12){
-#BoWe <- c(BoWe, dataC[ ,!i%%2])
-#BrWe<- c(BrWe, dataC[ ,i%%2])
-#}
-#dataC<-cbind(dataC, BoWe, BrWe)
-#for(j in 1:12){
- # dataC[,j]
-#}
+#Stack all body weight and all brain weight vectors into one body weight and one brain weight vector
+BodyWeight<-stack(as.vector(dataC[,c(1,2,3)]))
+BrainWeight<-stack(as.vector(dataC[,c(4,5,6)]))
+BodyWeight<-BodyWeight[,1]
+BrainWeight<-BrainWeight[,1]
 
-#dataC<- mutate(dataC, BodyWeight = BoWe, BrainWeight = BrWe)
-#dataC<-select(dataC, BodyWeight, BrainWeight)
-#dataC
+# Coerce into a data frame
+dataCFinal<-data.frame(BodyWeight,BrainWeight)
+
+#Remove any rows that contain NA values
+dataCFinal<-filter(dataCFinal, !is.na(dataCFinal$BodyWeight)|!is.na(dataCFinal$BrainWeight) )
+
+dataCFinal
+
+```
+###D
+```{r, echo=TRUE}
+# Read in data as a list using fread. Yields a 2x3
+dataD<-fread("http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/tomato.dat", sep = " ")
+
+# Separate each column into 3 columns, giving a 2x9
+dataDSep<-separate(dataD, "10000", into = c("10000A", "10000B", "10000C"), 
+                   sep = ",", convert = TRUE)
+dataDSep<-separate(dataDSep, "20000", into = c("20000A", "20000B", "20000C"), 
+                   sep = ",", convert = TRUE)
+dataDSep<-separate(dataDSep, "30000", into = c("30000A", "30000B", "30000C"), 
+                   sep = ",", convert = TRUE)
+
+# Gather each set of 3 pieces at density level into one column for each level
+density1<- gather(dataDSep,key="ABC",value="10000","10000A":"10000C")
+density1<- select(density1, "V1", "10000")
+density2<- gather(dataDSep,key="ABC",value="20000","20000A":"20000C")
+density2<- select(density2, "20000")
+density3<- gather(dataDSep,key="ABC",value="30000","30000A":"30000C")
+density3<- select(density3, "30000")
+dataDGather<-cbind(density1, density2, density3)
+
+# Combine each density column into one variable and make labels for each one, 
+# then group and sort by type of tomato
+dataDGather<- gather(dataDGather,key="Plant_Density",value="Yield","10000", "20000", "30000")
+colnames(dataDGather)<- c("Tomato_Type", "Plant_Density", "Yield")
+dataDGather<-group_by(dataDGather, Tomato_Type)
+dataDGather<-arrange(dataDGather, Tomato_Type)
+
+# Converting density from string to double
+odd<-vector()
+
+  for(i in 1:nrow(dataDGather)){
+  if(dataDGather[i,2]=="10000"){
+  odd[i]<-10000}
+  else{
+    if(dataDGather[i,2]=="20000"){
+      odd[i]<-20000}
+    else{
+      if(dataDGather[i,2]=="30000"){
+      odd[i]<-30000}
+    }
+  }
+  }
+dataDGather[,2]<-odd
+dataDGather
 ```
 
 
@@ -136,11 +185,10 @@ names(plants) <- c('Scientific_Name', 'Duration', 'Active_Growth_Period',
 ```
 ```{r echo=TRUE}
 # Look at the data
-plants
+head(plants)
 ```
 
 The biggest issue is all the "NA"s. My next move is to remove each row that does not have NAs in any of my variables I will be testing (so no NAs for Foliage Color or either of the pH measures)
-
 
 ```{r}
 library(dplyr)
@@ -150,36 +198,34 @@ newplants<-filter(plants,!is.na(plants$pH_Min)&!is.na(plants$pH_Max)&!is.na(plan
 # Create a new variable that takes the average of the min and max pH reported in the data set
 newplants<-mutate(newplants, pHAvg = (pH_Min+pH_Max)/2)
 
+
 # Group by foliage color, my predictor
 newplants<-group_by(newplants, Foliage_Color)
 
 # Take a look at the data set now
-newplants
+head(newplants)
 
-# Make a table just to display that summarizes the means of each average ph and counts for each foliage color
+# Make a table just to display that summarizes the means of each average ph 
+# and counts for each foliage color
 dispnewplants <- summarize(newplants, n(), mean(pHAvg))
 dispnewplants
-
 ```
-Now that the data is ready to go, I will run my ANOVA test and interpret my results at a .05 significance level
+ 
 ```{r, echo = TRUE}
-
 # Store regression model in a new variable
 ANOVAtestdata<-lm(pHAvg~Foliage_Color, newplants)
+RGC<-coefficients(ANOVAtestdata)
+RGC<-as.list(RGC)
 
 # Run ANOVA Test
 ANOVAResults<-anova(ANOVAtestdata)
-
-# Format output as a nicer table
-library(magrittr)
-library(kableExtra)
-ANOVAResults %>%
-  kable() %>%
-  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "condensed"))
-
+a = list(RGC, ANOVAResults)
+# Bind regression results and ANOVA results into one table
+FinalTable<-data.frame(rbindlist(a, use.names=FALSE, fill = TRUE, idcol = NULL))
+rownames(FinalTable)<-c("Coefficient", "Foliage Color (Predictor)", "Residual")
+FinalTable
 ```
-
 With a p value (0.0015) so much lower than my significance level (.05), we can concluded that there is a statistically significant relationshipe between foliage color and pH.
-**coefficients?**
+
 
 
