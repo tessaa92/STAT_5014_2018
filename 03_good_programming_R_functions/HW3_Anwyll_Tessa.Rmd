@@ -1,0 +1,219 @@
+---
+title: "Homework 3"
+author: "Tessa Anwyll"
+date: "September 6, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Load in all libraries I might end up using
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(readr)
+library(tidyverse)
+library(broom)
+library(lintr)
+library(vioplot)
+library(Deriv)
+
+```
+
+## Problem 4
+
+My takeaway from looking through the style guides is that each organization may have different style preferences, but in general, style guidelines are predominantly to make code legible for other collaborators to easily edit or for readers to whome you are presenting code to be able to easily figure out what your code does. My code needs to have a more systematic naming convention (style-wise and names need to be more descriptive) and I need to utilize indentation more. I also need to comment more descriptively and open and close my braces so that it is clear what kinds of things are inside the braces and what is not. My code is generally just a disorganized series of lines so maybe if I indent and comment more it will be more legible. I also use short and apparently meaningless variable and function names (to make typing faster for me and with a meaning that I understand) but this is not good for communicating what I'm doing to other people and makes it hard to remember what I did on each line.
+
+
+## Problem 5
+
+```{r}
+# Run homework 2 through lint
+lint(filename = "C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/02_data_munging_summarizing_R_git/HW2_Anwyll_Tessa.Rmd")
+
+
+```
+
+
+The primary issues that lint noted were things like "put spaces around all infix operators" (and before left parentheses), "Variable function names should be all lowercase" (which I will not change, I like having capital letters at the start of each word in the name for readability), and keeping lines shorter than 80 characters. I already knew the spacing was totally inconsistent but I didn't realize just HOW inconsistent I was.
+
+
+## Problem 6
+
+```{r}
+# Build function with arguments dev1 and dev2
+repeatedStats <- function(dev1, dev2){
+  dev1 <- as.vector(dev1)
+  dev2 <- as.vector(dev2)
+  # Calculate means of dev1 and dev2 and store in a new variable for each
+  mean1 <- mean(dev1) 
+  mean2 <- mean(dev2)
+  
+  # Calculate standard deviations for both variables and store in new variables
+  sd1 <- sd(dev1) 
+  sd2 <- sd(dev2)
+  
+  # Calculate the correlation between dev1 and dev2 and store in a new variable
+  rValueDev1Dev2 <- cor(dev1, dev2, method = "pearson")
+  
+  # Store all data in a data frame
+  results <- as.data.frame(t(c(mean1, mean2, sd1, sd2, rValueDev1Dev2)))
+  
+  # Name the columns to make it look nicer
+  colnames(results) <- c("Device_1_Mean", "Device_2_Mean", "Device_1_SD", "Device_2_SD", "Correlation")
+  
+  return(results)
+}
+
+# Read in data
+measurements <- readRDS("C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/03_good_programming_R_functions/HW3_data.rds")
+
+# Make a variable to use as a counter in the for loop
+countObservers <- c(table(measurements$Observer))
+forLoopCounter <- length(countObservers)
+
+# Create a table to fill with results from my function and two vectors to collect the column names and observer numbers for labeling the final table
+loopTable<- data.frame()
+observerName <- vector()
+finalColNames <- vector()
+
+# Make a loop to calculate the set of statistics for each observer
+for( i in 1:forLoopCounter){
+  # For each i, put the all rows with that observer number in them from the dev1 and dev2 columns into their own vectors
+  device1 <- measurements[measurements[, "Observer"] == i, "dev1"]
+  device2 <- measurements[measurements[, "Observer"] == i, "dev2"]
+  
+  # Collect observer names for the final table
+  observerName <- c(observerName, i)
+  
+  # For each run of the loop, add the results to a new row at the bottom of the table
+  loopTable <- rbind(loopTable, repeatedStats(device1, device2))
+  
+  # Collect the column names to use in the final table
+  finalColNames <- colnames(loopTable)
+}
+
+# Add the observer names to the rows of the table
+finalTable <- cbind(observerName, loopTable)
+
+# Add "Observer" as a column name
+colnames(finalTable) <- c("Observer", finalColNames)
+
+# Gather columns so mean and sd have their own column and device is a new variable
+deviceMeanTable <- gather(finalTable, key = "Device", value = "Mean", Device_1_Mean, Device_2_Mean)
+deviceSDTable <- gather(finalTable, key = "Device", value = "Standard_Deviation", Device_1_SD, Device_2_SD)
+finalTable <- cbind(finalTable$Observer, select(deviceMeanTable, Device, Mean), select(deviceSDTable, Standard_Deviation, Correlation))
+
+# Make device numbers look nicer
+for( i in 1:length(finalTable$Device)){
+  if(finalTable[i, "Device"] == "Device_1_Mean"){
+    finalTable[i, "Device"] <- "1"
+  }
+    else{
+      if(finalTable[i, "Device"] == "Device_2_Mean"){
+      finalTable[i, "Device"] <- "2"
+      }
+    }
+}
+
+# Put final column names on table
+colnames(finalTable) <- c("Observer", "Device", "Mean", "Standard_Deviation", "Correlation")
+
+# Print final table
+finalTable
+
+# Make Boxplot of means of each device type
+boxplot(Mean~Device, data = finalTable, main="Means of Device 1 and 2", ylab="Device", xlab="Means", horizontal = TRUE) 
+
+# Make Violin Plot of Standard Deviations
+x1 <- finalTable$Standard_Deviation[finalTable$Device == 1]
+x2 <- finalTable$Standard_Deviation[finalTable$Device == 2]
+vioplot(x1, x2, names = c("Device 1", "Device 2"))
+```
+
+
+##Problem 7
+
+
+```{r}
+# Import Data
+bloodPressureData <- fread("http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BloodPressure.dat")
+
+# Change column names so Day is not replicated
+bpdNames <- colnames(bloodPressureData)
+bpdNames[5]<- "Day Copy"
+colnames(bloodPressureData) <- bpdNames
+
+# Remove the second "Day" column since it is a repeat of the first
+bloodPressureData <- select(bloodPressureData, Day:Dev3, Doc1:Doc3) 
+
+# Gather doctor and device columns so reader (which device or doctor took the reading) is a variable and all readings are in one column
+bpd <- gather(bloodPressureData, key = "Reader", value = "Blood_Pressure", Dev1:Doc3)
+
+# Print cleaned data
+bpd
+```
+
+
+##Problem 8
+
+```{r}
+# f must be of the form f(x) = 0
+newtonsMethod <- function(inta, intb, formula, finish = 4, check = FALSE){
+  
+  x <- sample(inta:intb, 1)
+    #print(x)
+  functionVals <- vector()
+  derivVals <- vector()
+  xvals <- vector()
+  iterations <- vector()
+  counter <- 1
+  estimates <- vector()
+  z <- c((x-3):(x+3))
+  tolerance <- vector()
+  while (check == FALSE){
+    iterations <- c(iterations, counter)
+    num <- eval(formula, x)
+      print(paste("num is", num))
+    functionVals <- c(functionVals, num)
+    derivative <- (Deriv(formula, "x"))
+      print(derivative)
+    denom <- eval(derivative, x)
+      print(denom)
+    derivVals <- c(derivVals, denom)
+    xvals <- c(xvals, x)
+    xnext <- (x - (num/denom))
+      print(xnext)
+    estimates <- c(estimates, xnext)
+      print(round(xnext, finish))
+      print(round(x,finish))
+    check <- (round(xnext, finish) != round(x, finish))
+      print(check)
+    x <- xnext
+    counter <- counter + 1
+    tolerance <- c(tolerance, finish)
+  }
+  return(x)
+  outTable <- cbind(iterations, xvals, functionVals, derivVals, estimates, tolerance)
+  colnames(outTable) <- c("Count", "Xn", "f(x)", "f'(x)", "Xn+1", "Tolerance")
+  answer <- c("The", "answer", "is:", x, "Tolerance:", finish)
+  outTable <- rbind(outTable, answer)
+  y <- data.frame(matrix(nrow = length(z), ncol = counter))
+  y[,1] <- functionVals[1]+derivVals[1]*z-derivVals[1]*x[1]  
+  ycols <- vector()
+  plot(z, y[, 1], col = rgb(sample(1:5, 1), sample(1:5, 1), sample(1:5,1)))
+  for(i in 2:counter){
+    y[,i] <- functionVals[i]+derivVals[i]*z-derivVals[i]*x[i]  
+    lines(z, y[,i], col = rgb(sample(1:5, 1), sample(1:5, 1), sample(1:5,1)))
+  }
+  print(outTable)
+  
+}
+
+formula1 <- ((3^x)-sin(x)+cos(5*x))
+newtonsMethod(-3, 1, formula1)
+
+
+```
+
