@@ -17,11 +17,8 @@ library(tidyverse)
 library(broom)
 library(lintr)
 library(vioplot)
-<<<<<<< HEAD
+library(kableExtra)
 library(Deriv)
-
-=======
->>>>>>> 9e6aefff7e5f6ece30ae7bd844cf51bca95e7c20
 ```
 
 ## Problem 4
@@ -32,10 +29,9 @@ My takeaway from looking through the style guides is that each organization may 
 ## Problem 5
 
 ```{r}
-# Run homework 2 through lint
-lint(filename = "C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/02_data_munging_summarizing_R_git/HW2_Anwyll_Tessa.Rmd")
-
-
+# Run homework 2 through lint. I commented out the code I ran so that it didn't print the output
+#lint(filename = "C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/
+#                       02_data_munging_summarizing_R_git/HW2_Anwyll_Tessa.Rmd")
 ```
 
 
@@ -64,26 +60,30 @@ repeatedStats <- function(dev1, dev2){
   results <- as.data.frame(t(c(mean1, mean2, sd1, sd2, rValueDev1Dev2)))
   
   # Name the columns to make it look nicer
-  colnames(results) <- c("Device_1_Mean", "Device_2_Mean", "Device_1_SD", "Device_2_SD", "Correlation")
+  colnames(results) <- c("Device_1_Mean", "Device_2_Mean", 
+                         "Device_1_SD", "Device_2_SD", "Correlation")
   
   return(results)
 }
 
+input <- "C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/03_good_programming_R_functions/HW3_data.rds"
 # Read in data
-measurements <- readRDS("C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/03_good_programming_R_functions/HW3_data.rds")
+measurements <- readRDS(input)
 
 # Make a variable to use as a counter in the for loop
 countObservers <- c(table(measurements$Observer))
 forLoopCounter <- length(countObservers)
 
-# Create a table to fill with results from my function and two vectors to collect the column names and observer numbers for labeling the final table
+# Create a table to fill with results from my function and two vectors to collect the 
+# column names and observer numbers for labeling the final table
 loopTable<- data.frame()
 observerName <- vector()
 finalColNames <- vector()
 
 # Make a loop to calculate the set of statistics for each observer
 for( i in 1:forLoopCounter){
-  # For each i, put the all rows with that observer number in them from the dev1 and dev2 columns into their own vectors
+  # For each i, put the all rows with that observer number in them from the 
+  # dev1 and dev2 columns into their own vectors
   device1 <- measurements[measurements[, "Observer"] == i, "dev1"]
   device2 <- measurements[measurements[, "Observer"] == i, "dev2"]
   
@@ -104,12 +104,15 @@ finalTable <- cbind(observerName, loopTable)
 colnames(finalTable) <- c("Observer", finalColNames)
 
 # Gather columns so mean and sd have their own column and device is a new variable
-deviceMeanTable <- gather(finalTable, key = "Device", value = "Mean", Device_1_Mean, Device_2_Mean)
-deviceSDTable <- gather(finalTable, key = "Device", value = "Standard_Deviation", Device_1_SD, Device_2_SD)
-finalTable <- cbind(finalTable$Observer, select(deviceMeanTable, Device, Mean), select(deviceSDTable, Standard_Deviation, Correlation))
+deviceMeanTable <- gather(finalTable, key = "Device", value = "Mean", 
+                          Device_1_Mean, Device_2_Mean)
+deviceSDTable <- gather(finalTable, key = "Device", value = "Standard_Deviation",
+                        Device_1_SD, Device_2_SD)
+finalTable <- cbind(finalTable$Observer, select(deviceMeanTable, Device, Mean), 
+                    select(deviceSDTable, Standard_Deviation, Correlation))
 
 # Make device numbers look nicer
-for( i in 1:length(finalTable$Device)){
+for(i in 1:length(finalTable$Device)){
   if(finalTable[i, "Device"] == "Device_1_Mean"){
     finalTable[i, "Device"] <- "1"
   }
@@ -127,19 +130,26 @@ colnames(finalTable) <- c("Observer", "Device", "Mean", "Standard_Deviation", "C
 finalTable
 
 # Make Boxplot of means of each device type
-boxplot(Mean~Device, data = finalTable, main="Means of Device 1 and 2", ylab="Device", xlab="Means", horizontal = TRUE) 
+boxplot(Mean~Device, data = finalTable, main="Means of Device 1 and 2", 
+        ylab="Device", xlab="Means", horizontal = TRUE) 
+par(mfrow = c(1,2))
+boxplot(finalTable$Mean[finalTable$Device == 1], horizontal = TRUE)
+boxplot(finalTable$Mean[finalTable$Device == 2], horizontal = TRUE)
 
 # Make Violin Plot of Standard Deviations
 x1 <- finalTable$Standard_Deviation[finalTable$Device == 1]
 x2 <- finalTable$Standard_Deviation[finalTable$Device == 2]
 vioplot(x1, x2, names = c("Device 1", "Device 2"))
+par(mfrow = c(1, 2))
+vioplot(x1, names = "Device 1")
+vioplot(x2, names = "Device 2")
 ```
 
 
 ##Problem 7
 
 
-```{r}
+```{r, echo = TRUE}
 # Import Data
 bloodPressureData <- fread("http://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BloodPressure.dat")
 
@@ -151,7 +161,8 @@ colnames(bloodPressureData) <- bpdNames
 # Remove the second "Day" column since it is a repeat of the first
 bloodPressureData <- select(bloodPressureData, Day:Dev3, Doc1:Doc3) 
 
-# Gather doctor and device columns so reader (which device or doctor took the reading) is a variable and all readings are in one column
+# Gather doctor and device columns so reader (which device or doctor took the reading) 
+# is a variable and all readings are in one column
 bpd <- gather(bloodPressureData, key = "Reader", value = "Blood_Pressure", Dev1:Doc3)
 
 # Print cleaned data
@@ -162,81 +173,121 @@ bpd
 ##Problem 8
 
 ```{r}
-# f must be of the form f(x) = 0
-newtonsMethod <- function(inta, intb, formula, finish = 4, check = FALSE){
-<<<<<<< HEAD
-  
-  x <- sample(inta:intb, 1)
-    #print(x)
-=======
-  int <- c(inta:intb)
-  x <- sample(int, 1)
->>>>>>> 9e6aefff7e5f6ece30ae7bd844cf51bca95e7c20
+# Make a function to use that evaluates a function given a value
+evaluate <- function(func, val){
+  func(val)
+}
+# Create a function that stores the function we want to feed into Newton's method
+myfunc <- function(x){
+  3^x-sin(x)+cos(5*x)
+}
+
+# Create new function, accepts an interval where the initial guess is, the function, the threshold at 
+# which the function stops and how many digits it should round values contained in the vector storing all the steps
+newtonsMethod <- function(inta, intb, func, finish = .0001, check = FALSE, roundvals = 4){
+
+  # Take derivative of function to use in the loop below
+  derivative <- (Deriv(func, "x"))
+ # Sample a random start point on the interval specified in the function call
+  xn <- runif(1, inta, intb)
+  # Initialize vectors that are going to have to be used outside of the loop later in the function, 
+  # these store each value generated in the while loop for the table and graph.
   functionVals <- vector()
   derivVals <- vector()
   xvals <- vector()
   iterations <- vector()
-  counter <- 1
   estimates <- vector()
-  z <- c((x-3):(x+3))
   tolerance <- vector()
+  # Values that will be x values in the graph later
+  z <- seq(xn-5, xn+5, .01)
+  # Initialize a counter to use to count how many steps it requires 
+  # to reach an estimate and induce a break point if necessary
+  counter <- 1
   while (check == FALSE){
+    # Vector containing which number step we are on
     iterations <- c(iterations, counter)
-    num <- eval(formula, x)
-<<<<<<< HEAD
-      print(paste("num is", num))
-    functionVals <- c(functionVals, num)
-    derivative <- (Deriv(formula, "x"))
-      print(derivative)
-    denom <- eval(derivative, x)
-      print(denom)
-    derivVals <- c(derivVals, denom)
-    xvals <- c(xvals, x)
-    xnext <- (x - (num/denom))
-      print(xnext)
-    estimates <- c(estimates, xnext)
-      print(round(xnext, finish))
-      print(round(x,finish))
-    check <- (round(xnext, finish) != round(x, finish))
-      print(check)
-=======
-    functionVals <- c(functionVals, num)
-    denom <- eval(D(formula, "x"), x)
-    derivVals <- c(derivVals, denom)
-    xvals <- c(xvals, x)
-    xnext <- (x - (num/denom))
-    estimates <- c(estimates, xnext)
-    check <- (round(xnext, finish) != round(x, finish))
->>>>>>> 9e6aefff7e5f6ece30ae7bd844cf51bca95e7c20
-    x <- xnext
+    
+    # Create numerator and store it in a vector of numerator values
+    num <- func(xn)
+    functionVals <- c(functionVals, round(num, roundvals))
+    
+    # Create denominator and store it in a vector of denominator values 
+    denom <- evaluate(derivative, xn)
+    derivVals <- c(derivVals, round(denom, roundvals))
+    
+    # Store current value of xn
+    xvals <- c(xvals, round(xn, roundvals))
+    
+    # Create xn+1 and store it in a vector
+    xnext <- (xn - (num/denom))
+    estimates <- c(estimates, round(xnext, roundvals))
+    
+    # Check to see if xn and xn+1 are close enough together to conclude that 
+    # we have reached a sufficient estimatio of the zero
+    check <- (abs(xnext-xn)) <= finish
+    
+    # xn+1 becomes xn
+    xn <- xnext
     counter <- counter + 1
     tolerance <- c(tolerance, finish)
+    
+    # Induce break point if the loop has run 100 times without reaching an 
+    # estimate with the correct amount of precision
+    if(counter == 100){
+      check = TRUE
+    }
+    
   }
-  return(x)
+  
+  # Get a measure of how good our estimation is to display in the output
+  error <- func(xnext)
+  
+  # Create table with all the vectors created in the loop and label accordingly
   outTable <- cbind(iterations, xvals, functionVals, derivVals, estimates, tolerance)
   colnames(outTable) <- c("Count", "Xn", "f(x)", "f'(x)", "Xn+1", "Tolerance")
-  answer <- c("The", "answer", "is:", x, "Tolerance:", finish)
-  outTable <- rbind(outTable, answer)
+  
+  # Create rows that will summarize the answer, tolerance used and error and bind them to the table
+  ansrow <- c("Answer:", round(xnext, 7), " ", " ", " ", " ")
+  tolrow <- c("Tolerance", finish, " ", " ", " ", " ")
+  errrow <- c("Error:", round(error, 7),  " ", " ", " ", " ")
+  outTable <- rbind(outTable, ansrow, tolrow, errrow)
+  
+  # Remove row names and make table nicer
+  rownames(outTable) <- NULL
+  outTable<-kable(outTable, "markdown", digits = getOption("4"), align = "c")
+  
+  # Create a data frame to hold the values used to graph the tangent line at each estimation
   y <- data.frame(matrix(nrow = length(z), ncol = counter))
-  y[,1] <- functionVals[1]+derivVals[1]*z-derivVals[1]*x[1]  
-  ycols <- vector()
-  plot(z, y[, 1], col = rgb(sample(1:5, 1), sample(1:5, 1), sample(1:5,1)))
-  for(i in 2:counter){
-    y[,i] <- functionVals[i]+derivVals[i]*z-derivVals[i]*x[i]  
-    lines(z, y[,i], col = rgb(sample(1:5, 1), sample(1:5, 1), sample(1:5,1)))
+  #y[,1] <- functionVals[1]+derivVals[1]*z-derivVals[1]*xvals[1]  
+  
+  # Create a set of x values to use to make "smooth" curves of the actual function
+  xplot <- seq(-6, 3, .001)
+  myFuncVals <- func(xplot)
+  # Plot the function and make the axes a little easier to see
+  plot(xplot, rep.int(0, length(xplot)), type = "l", lwd = 2, col = "black", ylim = c(-2,2),  
+       xlab = "x", ylab = "y", main = "Newton's Method Steps")
+  lines(rep.int(0, length(xplot)), xplot , type = "l", lwd = 2)
+  lines(xplot, myFuncVals, lwd = 2)
+  
+  # For each row entry in the data matrix, find the corresponding tangent line and graph it
+  for(i in 1:counter){
+    y[,i] <- functionVals[i]+derivVals[i]*z-derivVals[i]*xvals[i]
+    lines(z, y[,i], col = rgb(sample(0:1, 1), sample(0:1, 1), sample(0:1,1)))
   }
+  
+  # Print the table
   print(outTable)
   
 }
 
-<<<<<<< HEAD
-formula1 <- ((3^x)-sin(x)+cos(5*x))
-newtonsMethod(-3, 1, formula1)
-=======
-formula1 <- "(3^x)-sin(x)+cos(5x)"
-newtonsMethod(0, 10, formula1)
->>>>>>> 9e6aefff7e5f6ece30ae7bd844cf51bca95e7c20
 
+```
+
+
+
+```{r}
+# Run the newtons method function
+newtonsMethod(-2,2, myfunc, finish = .01)
 
 ```
 
