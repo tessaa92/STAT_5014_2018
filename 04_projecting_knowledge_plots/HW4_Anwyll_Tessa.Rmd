@@ -1,0 +1,170 @@
+---
+title: "HW4_Anwyll_Tessa"
+author: "Tessa Anwyll"
+date: "September 14, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(glue)
+library(tidyverse)
+```
+
+## Problem 3
+
+Roger Peng says that the main goals of exploratory data analysis include "identifying relationships between variables that are particularly interesting or unexpected, checking to see if there is evidence for or against a stated hypothesis, checking for problems with collected data (such as missing data or a measurement error), or identifying certain areas where more data need to be collected...It allows the investigator to make critical decisions about what to follow up on and what probabily isn't worth pursuing because the data just don't provide the evidence (and might never provide the evidence even with follow up). These kinds of decisions are important to make if a project is to move forward and remain within its budget." (Peng, 1)
+Additionally, I think it is important so you can set your goals and decide what kind of analysis will need to be done, and it also helps you check your assumptions once you decide on a course of action.
+
+## Problem 4
+### 1.
+```{r}
+library(xlsx)
+
+# Read in data and combine both sheets into a single data frame
+prob4_data1 <- read.xlsx("HW4_data.xlsx", sheetIndex = 1)
+prob4_data2 <- read.xlsx("HW4_data.xlsx", sheetIndex = 2)
+prob4Data <- rbind(prob4_data1, prob4_data2)
+
+
+# Make vectors to simplify overall summary statistics computation
+block <- prob4Data$block
+depth <- prob4Data$depth
+phos <- prob4Data$phosphate
+
+# Put initial summary information into data frame and make label vector for 
+# columns and rows
+dataSummary <- rbind.data.frame(summary(depth), summary(phos))
+sumNames <- c("Min", "Q1", "Med", "Mean", "Q3", "Max")
+rown <- c("Overall Depth", "Overall Phosphate")
+
+# Find summary information by block for both phosphate and depth and add 
+# to data frame
+for(i in 1:13){
+  dataSummary <- rbind.data.frame(dataSummary, summary
+                 (prob4Data[which(prob4Data$block == i), "depth"]), 
+                  summary(prob4Data[which(prob4Data$block == i), "phosphate"]))
+  rown <- c(rown, paste("Block", i, "Depth"), paste("Block", i, "Phosphate"))
+}
+
+# Add names to data table
+colnames(dataSummary) <- sumNames
+rownames(dataSummary) <- rown 
+
+# Calculate IQRs and Ranges and add  to data summary table
+dataIQR <- dataSummary[,"Q3"]-dataSummary[,"Q1"]
+dataRange <- dataSummary[,"Max"]-dataSummary[,"Min"]
+dataSummary <- cbind.data.frame(dataSummary, dataIQR, dataRange)
+
+# Initialize sd vector and calculate standard deviation within each block 
+# for phosphate and depth
+dataSD <- c(sd(depth), sd(phos))
+for(i in 1:13){
+  dataSD <- c(dataSD, sd(prob4Data[which(prob4Data$block == i), "depth"]), 
+              sd(prob4Data[which(prob4Data$block == i), "phosphate"]))
+}
+# Initialize variance vector and calculate variance within each block 
+# for phosphate and depth 
+dataVar <- c(var(depth), var(phos))
+for(i in 1:13){
+  dataVar <- c(dataVar, var(prob4Data[which(prob4Data$block == i), "depth"]), 
+               var(prob4Data[which(prob4Data$block == i), "phosphate"]))
+}
+
+# add remaining columns and column names and print summary data
+dataSummary <- cbind.data.frame(dataSummary, dataVar, dataSD)
+sumNames <- c(sumNames, "IQR", "Range", "Variance", "Standard Deviation")
+colnames(dataSummary) <- sumNames
+dataSummary
+
+```
+
+### 2. Factor exploration
+The factors are block, depth and phosphate. Depth and phosphate are continuous numerical variables and block is categorical with levels 1-13. There are 142 observations for each block
+
+### 3. Multi Panel Plots
+
+```{r}
+# create matrix to hold each graph in multipanel plot
+matrixLay <- matrix(c(1, 2, 3, 4), ncol=2, byrow=TRUE)
+# set widths of each plot location
+layout(matrixLay, widths=c(7/10, 3/10), heights=c(5/10, 5/10))
+#set margins for first plot
+par(mar = c(0, 4, 4, 0))
+# make boxplot of depth vs block
+boxplot(prob4Data$depth~prob4Data$block, ylim = c(0,100), xaxt = "n", ylab = "Depth")
+# set margins for second graph
+par(mar = c(0, 0, 4, 4))
+# plot boxplot of all depth information
+boxplot(prob4Data$depth, ylim = c(0,100), main = "Totals", yaxt = "n")
+# set margins for third plot
+par(mar = c(4, 4, 0, 0))
+# create boxplot of phosphate by block
+boxplot(prob4Data$phosphate~prob4Data$block, xlab = "Block", ylab = "Phosphate")
+# set margins for fourth plot
+par(mar = c(4, 0, 0, 4))
+# create boxplot of all phosphate data
+boxplot(prob4Data$phosphate, yaxt = "n")
+
+```
+
+```{r}
+# set layout for 2 graphs and set margin for first graph
+par(mfrow = c(1,2), mar = c(4, 2, 1, 0))
+# plot histogram in first cell created by par function
+hist(prob4Data$depth, xlab = "Depth", main = "Histogram of Depth")
+# set margins for 2nd histogram
+par(mar = c(4, 0, 1, 2))
+# plot second histogram in second cell created by par function
+hist(prob4Data$phosphate, col = "green", xlab = "Phosphate", 
+     main = "Histogram of Phosphate", ylab = NULL, yaxt = "n")
+```
+### 4. Correlation plots
+```{r}
+# use pairs function to create a correlation matrix
+pairs(prob4Data, col = c("blue", "red"))
+
+
+```
+### 5. 
+Just looking at the summary statistics and the plots, there appears to be nothing all that interesting to investigate. We can see that phosphate tends to have a little bit more spread than depth and that depth has a few blocks where the data is skewed to one end of the box, but other than that, there doesn't appear to be a lot that would be worth the time to perform data analysis on this data set.
+
+
+## Problem 5
+```{r}
+# Make function to make multi-panel plots with inputs for data and labels
+multiPlot <- function(data1, data2, xlabel = "x", ylabel = "y"){
+# set margins and sizes for scatter plot
+par(fig=c(0,0.8,0,0.8), mar = c(4, 4, 1.5, 1.5) )
+# scatter plot of data1 vs data2
+plot(data1, data2, xlab= xlabel, ylab= ylabel)
+# set margins for top histogram
+par(fig=c(0,0.8, .55 ,1), new = TRUE)
+# plot histogram of x data
+hist(data1, axes=FALSE, main = NULL, xlab = NULL, ylab = NULL)
+# use hist function to generate the information for a histogram
+# without plotting it
+yhist <- hist(data2, plot = FALSE)
+# set margins for y "histogram"
+par(fig=c(0.65,1,0,.8), new = TRUE)
+# use density information from the hist function in the barplot function to utilize 
+# horiz parameter
+barplot(yhist$density, axes=FALSE, xlim=c(0, max(yhist$density)), space=0, horiz=TRUE)
+# add title in margin
+mtext(paste(xlabel, "vs", ylabel), side=3, outer=TRUE, line=-1, font = 2) 
+}
+
+# make plot using trees data
+multiPlot(trees[,1], trees[,3], colnames(trees)[1], colnames(trees)[3])
+
+
+```
+
+
+
+
+
+## Sources
+
+Peng, Roger D. **Exploratory Data Analysis with R**. 2016. Leanpub.com, Web. 14 Sep. 2018 
+https://www.statmethods.net/advgraphs/layout.html
