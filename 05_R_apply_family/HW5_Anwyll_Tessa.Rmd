@@ -1,0 +1,348 @@
+---
+title: "Homework 5"
+author: "Tessa Anwyll"
+date: "September 21, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(readr)
+library(tidyverse)
+library(broom)
+```
+
+## Problem 3
+A good figure is dependent on your medium, audience and itent, but in general I think a good figure is one that shows information that would be otherwise hard to communicate and communicates it efficiently. If you are making a figure to use for yourself, the figure just has to show the relationship you are looking for, wheras if you are making it for a more general audience, it needs to be colored nicely (in a way that makes the figure easier to understand), have titles, captions and labels and be simple enough that people who may not know a lot about the topic can make use of it. Additonally, if the figure is in a paper or online, it can be more complex than if you are putting it in a presentation where your audience sees it for less time and therefore it has to be simpler so it can be understood quickly. The figure should attempt to convey information clearly and objectively
+
+## Problem 4
+
+```{r}
+#Initialize function that accepts arguments 
+#for your data and the ability to define what counts as a success
+
+propSuccess <- function(data, success = 1){
+  counter <- length(data) #determine total number of elements in data set
+  num <- 0 #counter to record the number of successes
+  for(i in 1:counter){ #checks each element in the data set 
+    #to see if it is success and updates num if it is
+    if(data[i] == success){
+     num <- num+1
+    }
+  }
+  prop <- num/counter #calculate proportion of 
+                      #successes by dividing successes by total
+  return(prop)
+}
+
+# Set seed for generating random flip values
+    set.seed(12345)
+    # make a matrix of 10 observations for 10 
+    # different degrees of fairness between .3 and .4
+    P4b_data <- matrix(rbinom(10, 1, prob = (30:40)/100), nrow = 10, ncol = 10)
+# Use apply to find proportions of success for each column and each row
+resultsCols <- apply(P4b_data, 2, propSuccess)
+resultsRows <- apply(P4b_data, 1, propSuccess)
+resultsCols
+resultsRows
+
+
+
+```
+
+Each column is exactly identical with 6/10 entries being a 1, while each row is either all 1s or all 0s. The problem is that it is only generating one set of 10 random numbers and then copying that set of numbers for each of the columns in the matrix, or maybe it is generating each time from the same seed start point so its generating the same random numbers each time
+
+```{r}
+
+makeTenFlips <- function(probability){
+  output <- rbinom(10, 1, prob = probability)
+}
+
+flipProbs <- (30:40)/100
+flipMat <- matrix(rep(0, 100), nrow = 10, ncol = 10)
+flipMat <- replicate(10, makeTenFlips(flipProbs))
+resultsCols <- apply(flipMat, 2, propSuccess)
+resultsRows <- apply(flipMat, 1, propSuccess)
+outtable <- data.frame(rbind(resultsCols, resultsRows))
+rownames(outtable) <- c("Column Proportions", "Row Proportions")
+colnames(outtable) <- c(1:10)
+outtable
+```
+
+
+## Problem 5
+
+```{r}
+p5dat <- readLines("https://www2.isye.gatech.edu/~jeffwu/book/data/starch.dat")
+p5elements <- strsplit(p5dat, split = " ")
+starch <- vector()
+strength <- vector()
+thickness <- vector()
+position <- 1
+for(i in 2:length(p5elements)){
+  if(length(p5elements[[i]])<=3){
+  starch[position] <- p5elements[[i]][1]
+  strength[position] <- p5elements[[i]][2]
+  thickness[position] <- p5elements[[i]][3]
+  }
+  else{
+  starch[position] <- p5elements[[i]][1]
+  strength[position] <- p5elements[[i]][length(p5elements[[i]])-1]
+  thickness[position] <- p5elements[[i]][length(p5elements[[i]])]
+  }
+  position <- position+1
+}
+
+
+strength <- as.numeric(strength)
+thickness <- as.numeric(thickness)
+p5table <- data.frame(starch, strength, thickness)
+colnames(p5table) <- c(p5elements[[1]][1:3])
+p5table
+
+
+```
+```{r}
+# create mat for scatter plots
+layMat <- matrix(c(1:3, 0, 4, 0), ncol = 3, nrow = 2, byrow = TRUE)
+layout(layMat)
+
+# make vectors with just the data from one of each starch type
+CA <- p5table[which(p5table[,1]== "CA"), 2:3]
+CO <- p5table[which(p5table[,1]== "CO"), 2:3]
+PO <- p5table[which(p5table[,1]== "PO"), 2:3]
+
+# Make scatter plots of each factor and one graph with 
+# them all combined but color coded with legend
+plot(CA$thickness, CA$strength, main = "Canna thickness vs strength", 
+       xlab = "Thickness", ylab = "Strength", col = 1)
+plot(CO$thickness, CO$strength, main = "Corn thickness vs strength", 
+       xlab = "Thickness", ylab = "Strength", col = 2)
+plot(PO$thickness, PO$strength, main = "Potato thickness vs strength",
+       xlab = "Thickness", ylab = "Strength", col = 3)
+plot(thickness, strength, col = p5table$starch, main = "Thickness vs Strength", 
+       sub = "All starch types", xlab = "Thickness", ylab = "Strength",
+       xlim = c(4,14), ylim = c(300,1700))
+legend("topleft", legend = c("Canna", "Corn", "Potato"), 
+         col = 1:3, pch = 1, cex = .8)
+
+# make single vectors to feed to the for loop to make histograms for data
+# labels, margin arguments
+data <- c(CA[,1], CO[,1], PO[,1], strength, CA[,2], CO[,2], PO[,2], thickness)
+index <- c(length(CA[,1]), length(CO[,1]), length(PO[,1]), length(strength), 
+             length(CA[,2]), length(CO[,2]), length(PO[,2]), length(thickness))
+datax <- c("Frequency Strength", NULL, NULL, NULL, "Thickness", NULL, NULL, NULL)
+dataTitle <- c("Canna", "Corn", "Potato", "All Starch Types")
+margins <- cbind(c(0,4,4,0), c(0,0,4,0), c(0,0,4,0), c(0,0,4,4), c(4,4,0,0), 
+                   c(4,0,0,0), c(4,0,0,0), c(4,0,0,4))
+mylist <- list(CA[,1], CO[,1], PO[,1], strength, CA[,2], CO[,2], PO[,2], thickness)
+# Make layout mat
+layout((matrix(c(1:8), ncol=4, nrow = 2, byrow = TRUE)), widths = c(rep(2.5/10, 4)), 
+         heights = c(5/10, 5/10))
+
+# For loops make each histogram and add to layout mat
+counter <- 1
+for(i in 1:4){ #top row of mat
+  par(mar = margins[,i])
+  if(i == 1){
+  hist(mylist[[i]], main = dataTitle[i], ylab = datax[i], col = i+1, freq = FALSE, 
+         xlab = NULL, ylim = c(0,.007), xlim = c(100,1700))
+  }
+  else{
+    hist(mylist[[i]], main = dataTitle[i], ylab = datax[i], col = i+1, freq = FALSE, 
+           xlim = c(100,1700), xlab = NULL, yaxt = "n", ylim = c(0,.007))
+  }
+  box()
+  counter <<- counter + index[i]
+}
+
+for(i in 5:8){ # bottom row of mat
+  par(mar = margins[,i])
+  if(i == 5){
+  hist(mylist[[i]], main = NULL, col = i-3, ylab = "Frequency Thickness", freq = FALSE, 
+         ylim = c(0,.7), xlab = NULL, xlim = c(4,17))
+  }
+  else{
+    hist(mylist[[i]], yaxt = "n", ann = FALSE, ylab = datax[i], col = (i-3), 
+           xlim = c(4,17), freq = FALSE, main = NULL, ylim = c(0,.7))
+  }
+  box()
+  counter <- counter + index[i]
+}
+
+
+
+```
+
+```{r}
+
+# Function that takes a data set and outputs a table of 
+# summary statistics for exploratory data analysis
+dataSummary <- function(dataset, v1, v2, ...){
+dataOut <- rbind.data.frame(summary(dataset[,2]), summary(dataset[,3]))
+sumNames <- c("Min", "Q1", "Med", "Mean", "Q3", "Max")
+rown <- c(paste("Overall", v1), paste("Overall", v2))
+factors <- unique(dataset[,1])
+headers <- colnames(dataset)
+
+
+# Find summary information by factor and add 
+# to data frame
+for(i in 1:length(factors)){
+  dataOut <- rbind.data.frame(dataOut, summary
+                 (dataset[which(dataset[,1] == factors[i]), v1]), 
+                  summary(dataset[which(dataset[,1] == factors[i]), v2]))
+  rown <- c(rown, paste(factors[i], v1), paste(factors[i], v2))
+}
+
+# Add names to data table
+colnames(dataOut) <- sumNames
+rownames(dataOut) <- rown 
+
+# Calculate IQRs and Ranges and add  to data summary table
+dataIQR <- dataOut[,"Q3"]-dataOut[,"Q1"]
+dataRange <- dataOut[,"Max"]-dataOut[,"Min"]
+dataOut <- cbind.data.frame(dataOut, dataIQR, dataRange)
+
+# Initialize sd vector and calculate standard deviation within each factor for v1 and v2
+dataSD <- c(sd(dataset[,2]), sd(dataset[,3]))
+for(i in 1:length(factors)){
+  dataSD <- c(dataSD, sd(dataset[which(dataset[,1] == factors[i]), v1]), 
+              sd(dataset[which(dataset[,1] == factors[i]), v2]))
+}
+# Initialize variance vector and calculate variance within each factor for v1 and v2
+dataVar <- c(var(dataset[,2]), var(dataset[,3]))
+for(i in 1:length(factors)){
+  dataVar <- c(dataVar, var(dataset[which(dataset[,1] == factors[i]), v1]), 
+               var(dataset[which(dataset[,1] == factors[i]), v2]))
+}
+
+# add remaining columns and column names and print summary data
+dataOut <- cbind.data.frame(dataOut, dataVar, dataSD)
+sumNames <- c(sumNames, "IQR", "Range", "Variance", "Standard Deviation")
+colnames(dataOut) <- sumNames
+dataOut
+
+}
+# Create data summary of starch data
+dataSummary(p5table, "strength", "thickness")
+
+```
+
+
+## Problem 6
+
+```{r}
+   #we are grabbing a SQL set from here
+    # http://www.farinspace.com/wp-content/uploads/us_cities_and_states.zip
+
+    #download the files, looks like it is a .zip
+    library(downloader)
+    download("http://www.farinspace.com/wp-content/uploads/us_cities_and_states.zip",dest="us_cities_states.zip")
+    unzip("us_cities_states.zip", exdir = ".")
+    
+   
+    
+```
+
+```{r}
+ #read in data, looks like sql dump, blah
+    library(data.table)
+    states <- fread(input = "./us_cities_and_states/states.sql",skip = 23,sep = "'", 
+                      sep2 = ",", header = F, select = c(2,4), data.table = FALSE)
+      
+ states <- states[,1]
+ states <- states[-8]
+ states <- tolower(states)
+   
+  
+    #PART B
+    # Read in cities_extended and shorten by filtering out repeated city names
+    cities <- fread(input = "./us_cities_and_states/cities_extended.sql",sep = "'", 
+                      sep2 = ",", header = F, select = c(2,4))
+    citiesshort <- unique(cities)
+    
+    # Give some headers
+    colnames(citiesshort) <- c("City", "State")
+    
+    #Create summary table of the number of cities included by state
+    numbystate <- data.frame(table(citiesshort$State))
+    numbystate <- numbystate[c(-8,-40),]
+    
+    
+```
+
+#### PART C
+
+```{r}
+letter_count <- data.frame(matrix(NA,nrow=50, ncol=26))
+letterCounter <- function(letter, stateName){
+  temp <- strsplit(stateName, split = "")
+  tf <- temp[[1]] == letter
+  counter <- sum(tf)
+
+  return(counter)
+}
+alphabet <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+                "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
+for(i in 1:length(states)){
+  
+  letter_count[i,] <- sapply(alphabet, letterCounter, stateName = states[i]) 
+
+}
+colnames(letter_count) <- alphabet
+rownames(letter_count) <- states
+letter_count
+
+tflc <- letter_count >= 3
+Three.Or.More <- apply(tflc, 1, sum)
+statesum <- cbind(states, Three.Or.More)
+```
+
+### Map 1
+
+```{r}
+ #https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html
+    library(ggplot2)
+    library(fiftystater)
+    
+    data("fifty_states") # this line is optional due to lazy data loading
+    mystates <- data.frame(state = states, numbystate)
+    # map_id creates the aesthetic mapping to the state name column in your data
+    p <- ggplot(mystates, aes(map_id = state)) + 
+      # map points to the fifty_states shape data
+      geom_map(aes(fill = Freq), map = fifty_states) + 
+      expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+      coord_map() +
+      scale_x_continuous(breaks = NULL) + 
+      scale_y_continuous(breaks = NULL) +
+      labs(x = "", y = "") +
+      theme(legend.position = "bottom", 
+            panel.background = element_blank())
+    
+    p
+```
+### Map 2
+
+```{r}
+ mystates <- data.frame(state = states, statesum)
+    # map_id creates the aesthetic mapping to the state name column in your data
+    q <- ggplot(mystates, aes(map_id = state)) + 
+      # map points to the fifty_states shape data
+      geom_map(aes(fill = Three.Or.More), map = fifty_states) + 
+      expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+      coord_map() +
+      scale_x_continuous(breaks = NULL) + 
+      scale_y_continuous(breaks = NULL) +
+      labs(x = "", y = "") +
+      theme(legend.position = "bottom", 
+            panel.background = element_blank())
+    
+    q
+```
+
+
