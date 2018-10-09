@@ -1,0 +1,166 @@
+---
+title: 'Homework 6: Tessa Anwyll'
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r, echo = TRUE}
+set.seed(12345)
+# Generate random values for y
+y <- seq(1, 100, length.out = 1e+08) + rnorm(1e+08)
+# Find the mean of y
+ybar <- mean(y)
+# Initialize variables to use in the for loop 
+# to hold sums of squares
+sst1 <- 0
+sst2 <- 0
+# For each element in y, subtract the mean, square 
+# it and add it to the current total in the 
+# sums of squares vector
+system.time({
+  for(i in 1:length(y)){
+    sst1 <- sst1 + (y[i]-ybar)^2
+  }
+print(paste("Total Sum of Squares is:", sst1))
+})
+# Subtract the mean from every element in ybar at once, 
+# square each difference then add them up
+system.time({
+  sst2 <- sum((y-ybar)^2)
+  print(paste("Total Sum of Squares is:", sst2))
+})
+```
+
+
+Problem 3
+```{r, echo = TRUE}
+# Given in problem
+set.seed(1256)
+theta1 <- as.matrix(c(0,0), nrow = 2) #temporarily holds newly created value
+theta <- as.matrix(c(1,2), nrow = 2)
+X <- cbind(1, rep(1:10, 10))
+h <- X %*% theta + rnorm(100, 0, 0.2)
+# Initialize variables and parameters
+i <- 1 # a counter to have a break point
+a <- .0001 # step size
+m <- nrow(X) # interval width
+tol <- .0000001 # desired difference between successive terms
+actualTol <- TRUE
+# While you haven't reached tolerance yet, run the loop
+while(actualTol == TRUE){
+  # Create new values for theta 0 and theta 1
+  theta1[1,1] <- theta[1,1] - a*(1/m)*sum(
+    theta[2,1]*X[,2]+theta[1,1]-h)
+  theta1[2,1] <- theta[2,1] - a*(1/m)*sum((
+    theta[2,1]*X[,2]+theta[1,1]-h)*X[,2])
+  
+  # If you reach desired difference between 
+  # successive terms, end the loop
+  if((abs(theta1[1,1]-theta[1,1]) > tol) && 
+     ((abs(theta1[2,1]-theta[2,1])) > tol)){
+    actualTol <- TRUE
+  }
+  else{
+    actualTol <- FALSE
+  }
+  
+  # Store new theta in the location of the old theta
+  theta[1,1] <- theta1[1,1]
+  theta[2,1] <- theta1[2,1]
+  
+  # Counter iterates for each run
+  i <- i+1
+  
+  # Stop the loop if you hit 1,000,000 runs
+  if(i>1000000){
+    actualTol = FALSE
+    }
+  
+}
+# Use regression to calculate actual values
+act <- lm(h~0+X)
+
+# Create a table with theta estimates, how many loops 
+# it took, tolerance, step size and error
+outTable <- data.frame(c(theta[1,1], theta[2,1], i, tol, a, 
+                         act[[1]][1]-theta[1,1], act[[1]][2]-theta[2,1]))
+outTable[,1] <- round(outTable[,1], 5)
+rownames(outTable) <- c("Theta 0", "Theta 1", 
+                        "Number of Loops", "Tolerance", 
+                        "Step Size", "Error theta 0", 
+                        "Error theta 1")
+colnames(outTable) <- "value"
+outTable
+```
+
+Problem 4
+
+Rewrite your 
+\begin{equation*}
+\hat\beta = (X'X)^{-1}X'\underline{y}
+\end{equation*} 
+
+as 
+\begin{equation*}
+(X'X)\hat\beta = X'\underline{y}
+\end{equation*} 
+and use the solve function to find $\hat{\beta}$
+Using solve turns this into a system of equations question which has a faster compute time than an inverted matrix.
+
+Problem 5
+```{r data, echo=T, eval=F, include=T}
+
+    set.seed(12456) 
+    system.time({
+    G <- matrix(sample(c(0,0.5,1),size=16000,replace=T),ncol=10)
+    R <- cor(G) # R: 10 * 10 correlation matrix of G
+    C <- kronecker(R, diag(1600)) # C is a 16000 * 16000 block diagonal matrix
+    id <- sample(1:16000,size=932,replace=F)
+    q <- sample(c(0,0.5,1),size=15068,replace=T) # vector of length 15068
+    A <- C[id, -id] # matrix of dimension 932 * 15068
+    B <- C[-id, -id] # matrix of dimension 15068 * 15068
+    p <- runif(932,0,1)
+    r <- runif(15068,0,1)
+    C<-NULL #save some memory space
+   # y <- p - A %*% solve(B)*(q-r)
+    })
+    print(paste("The size of matrix A is:", object.size(A)))
+    print(paste("The size of matrix B is:", object.size(B)))
+    
+```
+
+
+*Part A* 
+
+[1] "The size of matrix A is: 112347224 bytes"
+[1] "The size of matrix B is: 1816357208 bytes"
+Other people ran it and it took about 18 minutes
+
+*Part B*
+I just did what I suggested above, I rearranged the equation so there were no more inverses and then used the solve function. I had to multiply the p vector by the I matrix so that it was the same size as B (I'm actually not so sure it's legal though) so that I could right multiply to cancel out the $B^{-1}$. It went slower than the original. 
+
+```{r}
+ set.seed(12456) 
+system.time({
+    G <- matrix(sample(c(0,0.5,1),size=16000,replace=T),ncol=10)
+    R <- cor(G) # R: 10 * 10 correlation matrix of G
+    C <- kronecker(R, diag(1600)) # C is a 16000 * 16000 block diagonal matrix
+    id <- sample(1:16000,size=932,replace=F)
+    q <- sample(c(0,0.5,1),size=15068,replace=T) # vector of length 15068
+    A <- C[id, -id] # matrix of dimension 932 * 15068
+    B <- C[-id, -id] # matrix of dimension 15068 * 15068
+    p <- runif(932,0,1)
+    r <- runif(15068,0,1)
+    C <- NULL #save some memory space
+    I <- diag(15068)
+    #y <- solve(B, (p*I %*% B)-A*(q-r))
+})
+```
+My output: Timing stopped at: 2547 7.89 2558
+ Show Traceback
+Error in (p * I %*% B) - A * (q - r) : non-conformable arrays
+
+
+So obviously my method didn't work very well (at all).

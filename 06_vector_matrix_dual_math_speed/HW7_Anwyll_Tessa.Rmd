@@ -1,0 +1,53 @@
+---
+title: "Homework 7"
+author: "Tessa Anwyll"
+date: "October 5, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(devtools)
+library(xlsx)
+
+library(gganimate)
+
+#devtools::install_github("dgrtwo/gganimate")
+```
+
+```{r}
+# Read in data and combine both sheets into a single data frame
+prob4_data1 <- read.xlsx("C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/04_projecting_knowledge_plots/HW4_data.xlsx", sheetIndex = 1)
+prob4_data2 <- read.xlsx("C:/Users/Tessa/Git/STAT_5014_2018/homework/STAT_5014_homework/04_projecting_knowledge_plots/HW4_data.xlsx", sheetIndex = 2)
+prob4Data <- rbind(prob4_data1, prob4_data2)
+# Change block into a factor so I can use it to make the multipanel plots
+prob4Data$block <- as.factor(prob4Data$block)
+```
+
+```{r}
+# Store my data as ggplot object
+g <- ggplot(prob4Data, aes(depth, phosphate))
+# Print scatterplots by factor 
+g + geom_point(aes(color = block))+facet_wrap(.~block, ncol = 5)+labs(x = "Depth", y = "Phosphate", title = "Datasaurus Multi-Panel Plot")
+```
+
+
+```{r, fig.show = "animate"}
+
+# Store ggplot in an object we will animate
+myplot <- ggplot(prob4Data, aes(depth, phosphate))
+
+#Make scatter plot with some transparency and color
+myplot+geom_point(alpha = 2/3, aes(color = block)) + 
+  facet_wrap(~block) + #Make a multipanel plot
+  labs(title = "Datasaurus", x = "Depth", y = "Phosphate") +
+  # flashes the image in each block in the plot
+  transition_states(block, transition_length = 2, state_length = 2)
+  ease_aes('linear')
+
+```
+
+
